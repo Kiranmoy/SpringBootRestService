@@ -1,0 +1,44 @@
+{
+	"info": {
+		"_postman_id": "665ecc3d-ea25-481e-85ae-c26dbef85643",
+		"name": "rahul-shetty-pact-testing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9673226"
+	},
+	"item": [
+		{
+			"name": "Library - Get product prices",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{library-url}}/getProductPrices",
+					"host": [
+						"{{library-url}}"
+					],
+					"path": [
+						"getProductPrices"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Courses - Get all course details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{course-url}}/allCourseDetails",
+					"host": [
+						"{{course-url}}"
+					],
+					"path": [
+						"allCourseDetails"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
