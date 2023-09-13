@@ -50,16 +50,16 @@ public class LibraryController {
 	private static final Logger logger=  LoggerFactory.getLogger(LibraryController.class);
 	
 	@PostMapping("/addBook")
-	public ResponseEntity addBookImplementation(@RequestBody Library library)
+	public ResponseEntity addBookImplementation(@RequestBody Books books)
 	{
-		String id =libraryService.buildId(library.getIsbn(),library.getAisle());//dependenyMock
+		String id =libraryService.buildId(books.getIsbn(), books.getAisle());//dependenyMock
 		AddResponse ad =new AddResponse();
 		
 		if(!libraryService.checkBookAlreadyExist(id))//mock
 		{
 			logger.info("Book do not exist so creating one");
-			library.setId(id);
-		repository.save(library);//mock
+			books.setId(id);
+		repository.save(books);//mock
 		HttpHeaders headers =new HttpHeaders();
 		headers.add("unique", id);
 		
@@ -80,10 +80,10 @@ public class LibraryController {
 		}
 	@CrossOrigin
 	@RequestMapping("/getBooks/{id}")
-	public Library getBookById(@PathVariable(value="id")String id)
+	public Books getBookById(@PathVariable(value="id")String id)
 	{
 		try {
-		Library lib =repository.findById(id).get();
+		Books lib =repository.findById(id).get();
 		return lib;
 		}
 		catch(Exception e)
@@ -93,30 +93,30 @@ public class LibraryController {
 	}
 	@CrossOrigin
 	@GetMapping("getBooks/author")
-	public List<Library> getBookByAuthorName(@RequestParam(value="authorname")String authorname)
+	public List<Books> getBookByAuthorName(@RequestParam(value="authorname")String authorname)
 	{
 		return repository.findAllByAuthor(authorname);
 	}
 	
 	@PutMapping("/updateBook/{id}")
-	public ResponseEntity<Library> updateBook(@PathVariable(value="id")String id,@RequestBody Library library)
+	public ResponseEntity<Books> updateBook(@PathVariable(value="id")String id, @RequestBody Books books)
 	{
 	//	Library existingBook = repository.findById(id).get();//mock
-		Library existingBook =libraryService.getBookById(id);
+		Books existingBook =libraryService.getBookById(id);
 		
-		existingBook.setAisle(library.getAisle());//mock
-		existingBook.setAuthor(library.getAuthor());
-		existingBook.setBook_name(library.getBook_name());
+		existingBook.setAisle(books.getAisle());//mock
+		existingBook.setAuthor(books.getAuthor());
+		existingBook.setBook_name(books.getBook_name());
 		repository.save(existingBook);//
 		//
-		return new ResponseEntity<Library>(existingBook,HttpStatus.OK);
+		return new ResponseEntity<Books>(existingBook,HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/deleteBook")
-	public ResponseEntity<String> deleteBookById(@RequestBody Library library)
+	public ResponseEntity<String> deleteBookById(@RequestBody Books books)
 	{
 	//	Library libdelete =repository.findById(library.getId()).get();
-		Library libdelete =libraryService.getBookById(library.getId());//mock
+		Books libdelete =libraryService.getBookById(books.getId());//mock
 		repository.delete(libdelete);
 		
 		logger.info("Book  is deleted ");
@@ -125,7 +125,7 @@ public class LibraryController {
 		}
 	
 	@GetMapping("/getBooks")
-	public List<Library> getBooks()
+	public List<Books> getBooks()
 	{
 		return repository.findAll();
 	}
@@ -137,7 +137,7 @@ public class LibraryController {
 		
 		SpecificProduct	specificProduct = new SpecificProduct();
 		TestRestTemplate restTemplate =new TestRestTemplate();
-		Library lib = repository.findByName(name);
+		Books lib = repository.findByName(name);
 		specificProduct.setProduct(lib);
 		ResponseEntity<String>	response =	restTemplate.getForEntity(baseUrl+"/getCourseByName/"+name, String.class);
 		if(response.getStatusCode().is4xxClientError())

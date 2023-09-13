@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import com.rahulshettyacademy.controller.Library;
+import com.rahulshettyacademy.controller.Books;
 
 @SpringBootTest
 public class testsIT {
@@ -54,7 +54,7 @@ public class testsIT {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		
-		HttpEntity<Library> request = new HttpEntity<Library>(buildLibrary(),headers);
+		HttpEntity<Books> request = new HttpEntity<Books>(buildLibrary(),headers);
 		ResponseEntity<String>	response =	restTemplate.postForEntity("http://localhost:8080/addBook", request, String.class);
 		Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 		Assert.assertEquals(buildLibrary().getId(),response.getHeaders().get("unique").get(0));
@@ -63,9 +63,9 @@ public class testsIT {
 		
 	}
 	
-	public Library buildLibrary()
+	public Books buildLibrary()
 	{
-		Library lib =new Library();
+		Books lib =new Books();
 		lib.setAisle(322);
 		lib.setBook_name("Spring");
 		lib.setIsbn("sfes");

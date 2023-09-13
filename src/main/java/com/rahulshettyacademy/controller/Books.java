@@ -6,8 +6,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="Storage2")
-public class Library {
+@Table(name="Books")
+public class Books {
     @Column(name="book_name")
 	private String book_name;
     @Id

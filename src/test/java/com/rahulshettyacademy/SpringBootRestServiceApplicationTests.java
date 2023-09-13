@@ -31,7 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rahulshettyacademy.controller.AddResponse;
-import com.rahulshettyacademy.controller.Library;
+import com.rahulshettyacademy.controller.Books;
 import com.rahulshettyacademy.controller.LibraryController;
 import com.rahulshettyacademy.repository.LibraryRepository;
 import com.rahulshettyacademy.service.LibraryService;
@@ -74,7 +74,7 @@ class SpringBootRestServiceApplicationTests {
 	{
 		//mock
 		
-		Library lib = buildLibrary();
+		Books lib = buildLibrary();
 		when(libraryService.buildId(lib.getIsbn(),lib.getAisle())).thenReturn(lib.getId());
 		when(libraryService.checkBookAlreadyExist(lib.getId())).thenReturn(false);
 		when(repository.save(any())).thenReturn(lib);
@@ -93,7 +93,7 @@ class SpringBootRestServiceApplicationTests {
 	@Test
 	public void addBookControllerTest() throws Exception
 	{
-		Library lib = buildLibrary();
+		Books lib = buildLibrary();
 		ObjectMapper map =new ObjectMapper();
 		String jsonString = map.writeValueAsString(lib);
 		
@@ -111,7 +111,7 @@ class SpringBootRestServiceApplicationTests {
 	@Test
 	public void getBookByAuthorTest() throws Exception
 	{
-		List<Library> li =new ArrayList<Library>();
+		List<Books> li =new ArrayList<Books>();
 		li.add(buildLibrary());
 		li.add(buildLibrary());
 		when(repository.findAllByAuthor(any())).thenReturn(li);
@@ -125,7 +125,7 @@ class SpringBootRestServiceApplicationTests {
 	@Test
 	public void updateBookTest() throws Exception
 	{
-		Library lib =buildLibrary();
+		Books lib =buildLibrary();
 		ObjectMapper map =new ObjectMapper();
 		String jsonString = map.writeValueAsString(UpdateLibrary());
 		when(libraryService.getBookById(any())).thenReturn(buildLibrary());
@@ -149,9 +149,9 @@ class SpringBootRestServiceApplicationTests {
 	
 	
 	
-	public Library buildLibrary()
+	public Books buildLibrary()
 	{
-		Library lib =new Library();
+		Books lib =new Books();
 		lib.setAisle(322);
 		lib.setBook_name("Spring");
 		lib.setIsbn("sfe");
@@ -160,9 +160,9 @@ class SpringBootRestServiceApplicationTests {
 		return lib;
 		
 	}
-	public Library UpdateLibrary()
+	public Books UpdateLibrary()
 	{
-		Library lib =new Library();
+		Books lib =new Books();
 		lib.setAisle(322);
 		lib.setBook_name("Boot");
 		lib.setIsbn("rain");

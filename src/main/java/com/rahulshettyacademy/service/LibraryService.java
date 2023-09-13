@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.rahulshettyacademy.controller.Library;
+import com.rahulshettyacademy.controller.Books;
 import com.rahulshettyacademy.repository.LibraryRepository;
 @Service
 public class LibraryService {
@@ -23,7 +23,7 @@ public class LibraryService {
 	}
 	public boolean checkBookAlreadyExist(String id)
 	{
-		Optional<Library> lib=repository.findById(id);
+		Optional<Books> lib=repository.findById(id);
 		if(lib.isPresent())
 			return true;
 		else
@@ -31,7 +31,7 @@ public class LibraryService {
 		
 		
 	}
-	public Library getBookById(String id)
+	public Books getBookById(String id)
 	{
 		return repository.findById(id).get();
 	}

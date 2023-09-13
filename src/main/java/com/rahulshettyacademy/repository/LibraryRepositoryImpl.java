@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.rahulshettyacademy.controller.Library;
+import com.rahulshettyacademy.controller.Books;
 
 public class LibraryRepositoryImpl implements LibraryRepositoryCustom{
 	
@@ -13,11 +13,11 @@ public class LibraryRepositoryImpl implements LibraryRepositoryCustom{
 	LibraryRepository repository;
 
 	@Override
-	public List<Library> findAllByAuthor(String authorName) {
-		List<Library>bookswithAuthor = new ArrayList<Library>();
+	public List<Books> findAllByAuthor(String authorName) {
+		List<Books>bookswithAuthor = new ArrayList<Books>();
 		// TODO Auto-generated method stub
-		List<Library>books =repository.findAll();
-		for(Library item : books)
+		List<Books>books =repository.findAll();
+		for(Books item : books)
 //			{
 	if(item.getAuthor().equalsIgnoreCase(authorName))
 	{
@@ -29,11 +29,11 @@ public class LibraryRepositoryImpl implements LibraryRepositoryCustom{
 	}
 	
 	@Override
-	public Library findByName(String bookName) {
-		List<Library>bookswithAuthor = new ArrayList<Library>();
+	public Books findByName(String bookName) {
+		List<Books>bookswithAuthor = new ArrayList<Books>();
 		// TODO Auto-generated method stub
-		List<Library>books =repository.findAll();
-		for(Library item : books)
+		List<Books>books =repository.findAll();
+		for(Books item : books)
 //			{
 	if(item.getBook_name().equalsIgnoreCase(bookName))
 	{

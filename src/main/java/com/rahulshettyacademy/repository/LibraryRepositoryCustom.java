@@ -2,12 +2,12 @@ package com.rahulshettyacademy.repository;
 
 import java.util.List;
 
-import com.rahulshettyacademy.controller.Library;
+import com.rahulshettyacademy.controller.Books;
 
 public interface LibraryRepositoryCustom {
 	
-	List<Library> findAllByAuthor(String authorName);
+	List<Books> findAllByAuthor(String authorName);
 
-	Library findByName(String bookName);
+	Books findByName(String bookName);
 
 }
