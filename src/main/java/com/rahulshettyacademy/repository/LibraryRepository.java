@@ -1,10 +1,10 @@
 package com.rahulshettyacademy.repository;
 
+import com.rahulshettyacademy.controller.Books;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.rahulshettyacademy.controller.Books;
 @Repository
-public interface LibraryRepository extends JpaRepository<Books, String>,LibraryRepositoryCustom{
+public interface LibraryRepository extends JpaRepository<Books, String>, LibraryRepositoryCustom {
 
 }

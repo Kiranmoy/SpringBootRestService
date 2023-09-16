@@ -1,49 +1,46 @@
 package com.rahulshettyacademy.repository;
 
+import com.rahulshettyacademy.controller.Books;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+public class LibraryRepositoryImpl implements LibraryRepositoryCustom {
 
-import com.rahulshettyacademy.controller.Books;
+  @Autowired
+  LibraryRepository repository;
 
-public class LibraryRepositoryImpl implements LibraryRepositoryCustom{
-	
-	@Autowired
-	LibraryRepository repository;
-
-	@Override
-	public List<Books> findAllByAuthor(String authorName) {
-		List<Books>bookswithAuthor = new ArrayList<Books>();
-		// TODO Auto-generated method stub
-		List<Books>books =repository.findAll();
-		for(Books item : books)
+  @Override
+  public List<Books> findAllByAuthor(String authorName) {
+    List<Books> bookswithAuthor = new ArrayList<Books>();
+    // TODO Auto-generated method stub
+    List<Books> books = repository.findAll();
+    for (Books item : books)
 //			{
-	if(item.getAuthor().equalsIgnoreCase(authorName))
-	{
-		bookswithAuthor.add(item);
-	}
+      if (item.getAuthor().equalsIgnoreCase(authorName)) {
+        bookswithAuthor.add(item);
+      }
 //			}
-		
-		return bookswithAuthor;
-	}
-	
-	@Override
-	public Books findByName(String bookName) {
-		List<Books>bookswithAuthor = new ArrayList<Books>();
-		// TODO Auto-generated method stub
-		List<Books>books =repository.findAll();
-		for(Books item : books)
+
+    return bookswithAuthor;
+  }
+
+  @Override
+  public Books findByName(String bookName) {
+    List<Books> bookswithAuthor = new ArrayList<Books>();
+    // TODO Auto-generated method stub
+    List<Books> books = repository.findAll();
+    for (Books item : books)
 //			{
-	if(item.getBook_name().equalsIgnoreCase(bookName))
-	{
-		return item;
-	}
+      if (item.getBook_name().equalsIgnoreCase(bookName)) {
+        return item;
+      }
 //			}
-		return null;
-		
-		
-	}
-	
+    return null;
+
+
+  }
+
 
 }

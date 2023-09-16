@@ -1,23 +1,21 @@
 package com.rahulshettyacademy;
 
+import com.rahulshettyacademy.repository.LibraryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.rahulshettyacademy.repository.LibraryRepository;
-
-
 
 @SpringBootApplication
 public class SpringBootRestServiceApplication {
-	
-	@Autowired
-	LibraryRepository repository;
 
-	public static void main(String[] args) {
-		SpringApplication.run(SpringBootRestServiceApplication.class, args);
-	}
-	
+  @Autowired
+  LibraryRepository repository;
+
+  public static void main(String[] args) {
+    SpringApplication.run(SpringBootRestServiceApplication.class, args);
+  }
+
 //	@Override
 //	public void run(String[] args)
 //	{
@@ -39,9 +37,6 @@ public class SpringBootRestServiceApplication {
 //		repository.delete(en);
 //		
 //		}
-	
-	
-	
-	   
+
 
 }
