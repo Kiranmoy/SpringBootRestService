@@ -1,6 +1,6 @@
 package com.rahulshettyacademy;
 
-import com.rahulshettyacademy.controller.Books;
+import com.rahulshettyacademy.entity.Books;
 import org.json.JSONException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.rahulshettyacademy.controller;
+package com.rahulshettyacademy.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

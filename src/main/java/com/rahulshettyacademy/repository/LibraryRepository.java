@@ -1,6 +1,6 @@
 package com.rahulshettyacademy.repository;
 
-import com.rahulshettyacademy.controller.Books;
+import com.rahulshettyacademy.entity.Books;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

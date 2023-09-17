@@ -1,6 +1,6 @@
 package com.rahulshettyacademy.repository;
 
-import com.rahulshettyacademy.controller.Books;
+import com.rahulshettyacademy.entity.Books;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -16,12 +16,11 @@ public class LibraryRepositoryImpl implements LibraryRepositoryCustom {
     List<Books> bookswithAuthor = new ArrayList<Books>();
     // TODO Auto-generated method stub
     List<Books> books = repository.findAll();
-    for (Books item : books)
-//			{
+    for (Books item : books){
       if (item.getAuthor().equalsIgnoreCase(authorName)) {
         bookswithAuthor.add(item);
       }
-//			}
+    }
 
     return bookswithAuthor;
   }
@@ -31,12 +30,11 @@ public class LibraryRepositoryImpl implements LibraryRepositoryCustom {
     List<Books> bookswithAuthor = new ArrayList<Books>();
     // TODO Auto-generated method stub
     List<Books> books = repository.findAll();
-    for (Books item : books)
-//			{
+    for (Books item : books){
       if (item.getBook_name().equalsIgnoreCase(bookName)) {
         return item;
       }
-//			}
+    }
     return null;
 
 

@@ -1,4 +1,4 @@
-package com.rahulshettyacademy.controller;
+package com.rahulshettyacademy.model;
 
 public class AddResponse {
 

@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rahulshettyacademy.controller.LibraryController;
-import com.rahulshettyacademy.controller.ProductsPrices;
+import com.rahulshettyacademy.model.ProductsPrices;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +43,7 @@ public class PactConsumerTest {
   @PactTestFor(pactMethod = "PactallCoursesDetailsPriceCheck", port = "9999")
   public void testAllProductsSum(MockServer mockServer) throws JsonMappingException, JsonProcessingException {
     String expectedJson = "{\"booksPrice\":250,\"coursesPrice\":30}";
-    libraryController.setBaseUrl(mockServer.getUrl());
+    libraryController.setCoursesBaseUrl(mockServer.getUrl());
 
     ProductsPrices productsPrices = libraryController.getProductPrices();
     ObjectMapper obj = new ObjectMapper();

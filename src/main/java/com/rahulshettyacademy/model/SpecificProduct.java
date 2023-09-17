@@ -1,7 +1,8 @@
-package com.rahulshettyacademy.controller;
+package com.rahulshettyacademy.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.rahulshettyacademy.entity.Books;
 import org.springframework.stereotype.Component;
 
 @Component

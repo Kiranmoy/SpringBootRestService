@@ -1,6 +1,6 @@
 package com.rahulshettyacademy.service;
 
-import com.rahulshettyacademy.controller.Books;
+import com.rahulshettyacademy.entity.Books;
 import com.rahulshettyacademy.repository.LibraryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

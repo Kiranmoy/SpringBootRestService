@@ -2,8 +2,8 @@ package com.rahulshettyacademy;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rahulshettyacademy.controller.AddResponse;
-import com.rahulshettyacademy.controller.Books;
+import com.rahulshettyacademy.model.AddResponse;
+import com.rahulshettyacademy.entity.Books;
 import com.rahulshettyacademy.controller.LibraryController;
 import com.rahulshettyacademy.repository.LibraryRepository;
 import com.rahulshettyacademy.service.LibraryService;

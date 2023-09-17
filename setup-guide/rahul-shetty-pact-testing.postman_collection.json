@@ -7,38 +7,253 @@
 	},
 	"item": [
 		{
-			"name": "Library - Get product prices",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{library-url}}/getProductPrices",
-					"host": [
-						"{{library-url}}"
-					],
-					"path": [
-						"getProductPrices"
-					]
+			"name": "Courses",
+			"item": [
+				{
+					"name": "Get all course details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{course-url}}/allCourseDetails",
+							"host": [
+								"{{course-url}}"
+							],
+							"path": [
+								"allCourseDetails"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Course by name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{course-url}}/getCourseByName/:name",
+							"host": [
+								"{{course-url}}"
+							],
+							"path": [
+								"getCourseByName",
+								":name"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "Appium"
+								}
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "Courses - Get all course details",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{course-url}}/allCourseDetails",
-					"host": [
-						"{{course-url}}"
-					],
-					"path": [
-						"allCourseDetails"
-					]
+			"name": "Library",
+			"item": [
+				{
+					"name": "Add Book",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"book_name\": \"KIRAN\",\r\n    \"isbn\": \"1994NOV\",\r\n    \"aisle\": \"21\",\r\n    \"author\": \"Paul\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{library-url}}/addBook",
+							"host": [
+								"{{library-url}}"
+							],
+							"path": [
+								"addBook"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Book by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{library-url}}/getBooks/:id",
+							"host": [
+								"{{library-url}}"
+							],
+							"path": [
+								"getBooks",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1994NOV21"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Book by author",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{library-url}}/getBooks/author?authorname=Paul",
+							"host": [
+								"{{library-url}}"
+							],
+							"path": [
+								"getBooks",
+								"author"
+							],
+							"query": [
+								{
+									"key": "authorname",
+									"value": "Paul"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all Books",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{library-url}}/getBooks",
+							"host": [
+								"{{library-url}}"
+							],
+							"path": [
+								"getBooks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update book by ID",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"book_name\": \"KIRAN\",\r\n    \"isbn\": \"1994NOV\",\r\n    \"aisle\": \"21\",\r\n    \"author\": \"PAUL\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{library-url}}/updateBook/:id",
+							"host": [
+								"{{library-url}}"
+							],
+							"path": [
+								"updateBook",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1994NOV21"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete book",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"1994NOV21\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{library-url}}/deleteBook",
+							"host": [
+								"{{library-url}}"
+							],
+							"path": [
+								"deleteBook"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get product prices",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{library-url}}/getProductPrices",
+							"host": [
+								"{{library-url}}"
+							],
+							"path": [
+								"getProductPrices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get product details by name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{library-url}}/getProductDetails/:name",
+							"host": [
+								"{{library-url}}"
+							],
+							"path": [
+								"getProductDetails",
+								":name"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "Microservices"
+								}
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		}
 	]
 }
