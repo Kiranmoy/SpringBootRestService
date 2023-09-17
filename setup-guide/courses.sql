@@ -8,8 +8,8 @@ CREATE TABLE courses(
 );
 
 
-INSERT INTO courses(course_name,id,price,category) values("Microservices testing","2",23,"api");
-INSERT INTO courses(course_name,id,price,category) values("Selenium","3",66,"web");
-INSERT INTO courses(course_name,id,price,category) values("Appium","12",13,"mobile");
+INSERT INTO courses(course_name,id,price,category) values('Microservices testing','2',23,'api');
+INSERT INTO courses(course_name,id,price,category) values('Selenium','3',66,'web');
+INSERT INTO courses(course_name,id,price,category) values('Appium','12',13,'mobile');
 
 Select * from courses;
