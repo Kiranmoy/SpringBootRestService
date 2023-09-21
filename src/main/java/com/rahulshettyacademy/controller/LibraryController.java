@@ -106,7 +106,7 @@ public class LibraryController {
     specificProduct.setProduct(lib);
     ResponseEntity<String> response = restTemplate.getForEntity(coursesBaseUrl + "/getCourseByName/" + name, String.class);
     if (response.getStatusCode().is4xxClientError()) {
-      specificProduct.setMsg(name + "Category and price details are not available at this time");
+      specificProduct.setMsg(name + " : Category and price details are not available at this time");
     } else {
       ObjectMapper mapper = new ObjectMapper();
       AllCourseDetails allCourseDetails = mapper.readValue(response.getBody(), AllCourseDetails.class);
