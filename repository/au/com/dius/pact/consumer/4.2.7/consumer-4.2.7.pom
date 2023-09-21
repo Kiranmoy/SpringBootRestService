@@ -1,0 +1,779 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>au.com.dius.pact</groupId>
+  <artifactId>consumer</artifactId>
+  <version>4.2.7</version>
+  <name>consumer</name>
+  <description>Pact consumer
+=============
+
+Pact Consumer is used by projects that are consumers of an API.
+
+Most projects will want to use pact-consumer via one of the test framework specific projects. If your favourite
+framework is not implemented, this module should give you all the hooks you need.
+
+Provides a DSL for use with Java to build consumer pacts.
+
+## Dependency
+
+The library is available on maven central using:
+
+* group-id = `au.com.dius.pact`
+* artifact-id = `consumer`
+* version-id = `4.2.x`
+
+## DSL Usage
+
+Example in a JUnit test:
+
+```java
+import au.com.dius.pact.model.MockProviderConfig;
+import au.com.dius.pact.model.RequestResponsePact;
+import org.apache.http.entity.ContentType;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static au.com.dius.pact.consumer.ConsumerPactRunnerKt.runConsumerTest;
+import static org.junit.Assert.assertEquals;
+
+public class PactTest {
+
+  @Test
+  public void testPact() {
+    RequestResponsePact pact = ConsumerPactBuilder
+      .consumer(&amp;quot;Some Consumer&amp;quot;)
+      .hasPactWith(&amp;quot;Some Provider&amp;quot;)
+      .uponReceiving(&amp;quot;a request to say Hello&amp;quot;)
+      .path(&amp;quot;/hello&amp;quot;)
+      .method(&amp;quot;POST&amp;quot;)
+      .body(&amp;quot;{\&amp;quot;name\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+      .willRespondWith()
+      .status(200)
+      .body(&amp;quot;{\&amp;quot;hello\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+      .toPact();
+
+    MockProviderConfig config = MockProviderConfig.createDefault();
+    PactVerificationResult result = runConsumerTest(pact, config, new PactTestRun() {
+      @Override
+      public void run(@NotNull MockServer mockServer) throws IOException {
+        Map expectedResponse = new HashMap();
+        expectedResponse.put(&amp;quot;hello&amp;quot;, &amp;quot;harry&amp;quot;);
+        assertEquals(expectedResponse, new ConsumerClient(mockServer.getUrl()).post(&amp;quot;/hello&amp;quot;,
+            &amp;quot;{\&amp;quot;name\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;, ContentType.APPLICATION_JSON));
+      }
+    });
+
+    if (result instanceof PactVerificationResult.Error) {
+      throw new RuntimeException(((PactVerificationResult.Error)result).getError());
+    }
+
+    assertEquals(PactVerificationResult.Ok.INSTANCE, result);
+  }
+
+}
+```
+
+The DSL has the following pattern:
+
+```java
+.consumer(&amp;quot;Some Consumer&amp;quot;)
+.hasPactWith(&amp;quot;Some Provider&amp;quot;)
+.given(&amp;quot;a certain state on the provider&amp;quot;)
+    .uponReceiving(&amp;quot;a request for something&amp;quot;)
+        .path(&amp;quot;/hello&amp;quot;)
+        .method(&amp;quot;POST&amp;quot;)
+        .body(&amp;quot;{\&amp;quot;name\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+    .willRespondWith()
+        .status(200)
+        .body(&amp;quot;{\&amp;quot;hello\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+    .uponReceiving(&amp;quot;another request for something&amp;quot;)
+        .path(&amp;quot;/hello&amp;quot;)
+        .method(&amp;quot;POST&amp;quot;)
+        .body(&amp;quot;{\&amp;quot;name\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+    .willRespondWith()
+        .status(200)
+        .body(&amp;quot;{\&amp;quot;hello\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+    .
+    .
+    .
+.toPact()
+```
+
+You can define as many interactions as required. Each interaction starts with `uponReceiving` followed by `willRespondWith`.
+The test state setup with `given` is a mechanism to describe what the state of the provider should be in before the provider
+is verified. It is only recorded in the consumer tests and used by the provider verification tasks.
+
+### Building JSON bodies with PactDslJsonBody DSL
+
+The body method of the ConsumerPactBuilder can accept a PactDslJsonBody, which can construct a JSON body as well as
+define regex and type matchers.
+
+For example:
+
+```java
+PactDslJsonBody body = new PactDslJsonBody()
+    .stringType(&amp;quot;name&amp;quot;)
+    .booleanType(&amp;quot;happy&amp;quot;)
+    .hexValue(&amp;quot;hexCode&amp;quot;)
+    .id()
+    .ipAddress(&amp;quot;localAddress&amp;quot;)
+    .numberValue(&amp;quot;age&amp;quot;, 100)
+    .timestamp();
+```
+
+#### DSL Matching methods
+
+The following matching methods are provided with the DSL. In most cases, they take an optional value parameter which
+will be used to generate example values (i.e. when returning a mock response). If no example value is given, a random
+one will be generated.
+
+| method | description |
+|--------|-------------|
+| string, stringValue | Match a string value (using string equality) |
+| number, numberValue | Match a number value (using Number.equals)\* |
+| booleanValue | Match a boolean value (using equality) |
+| stringType | Will match all Strings |
+| numberType | Will match all numbers\* |
+| integerType | Will match all numbers that are integers (both ints and longs)\* |
+| decimalType | Will match all real numbers (floating point and decimal)\* |
+| booleanType | Will match all boolean values (true and false) |
+| stringMatcher | Will match strings using the provided regular expression |
+| timestamp | Will match string containing timestamps. If a timestamp format is not given, will match an ISO timestamp format |
+| date | Will match string containing dates. If a date format is not given, will match an ISO date format |
+| time | Will match string containing times. If a time format is not given, will match an ISO time format |
+| ipAddress | Will match string containing IP4 formatted address. |
+| id | Will match all numbers by type |
+| hexValue | Will match all hexadecimal encoded strings |
+| uuid | Will match strings containing UUIDs |
+| includesStr | Will match strings containing the provided string |
+| equalsTo | Will match using equals |
+| matchUrl | Defines a matcher for URLs, given the base URL path and a sequence of path fragments. The path fragments could be strings or regular expression matchers |
+| nullValue | Matches the JSON Null value |
+
+_\* Note:_ JSON only supports double precision floating point values. Depending on the language implementation, they
+may be parsed as integer, floating point or decimal numbers.
+
+#### Ensuring all items in a list match an example
+
+Lots of the time you might not know the number of items that will be in a list, but you want to ensure that the list
+has a minimum or maximum size and that each item in the list matches a given example. You can do this with the `arrayLike`,
+`minArrayLike` and `maxArrayLike` functions.
+
+| function | description |
+|----------|-------------|
+| `eachLike` | Ensure that each item in the list matches the provided example |
+| `maxArrayLike` | Ensure that each item in the list matches the provided example and the list is no bigger than the provided max |
+| `minArrayLike` | Ensure that each item in the list matches the provided example and the list is no smaller than the provided min |
+
+For example:
+
+```java
+    DslPart body = new PactDslJsonBody()
+        .minArrayLike(&amp;quot;users&amp;quot;)
+            .id()
+            .stringType(&amp;quot;name&amp;quot;)
+        .closeObject()
+        .closeArray();
+```
+
+This will ensure that the users list is never empty and that each user has an identifier that is a number and a name that is a string.
+
+#### Ignoring the list order (V4 specification)
+
+If the order of the list items is not known, you can use the `unorderedArray` matcher functions. These will match the 
+actual list against the expected one, except will match the items in any order.
+
+| function | description |
+|----------|-------------|
+| `unorderedArray` | Ensure that the list matches the provided example, ignoring the order |
+| `unorderedMinArray` | Ensure that the list matches the provided example and the list is not smaller than the provided min |
+| `unorderedMaxArray` | Ensure that the list matches the provided example and the list is no bigger than the provided max |
+| `unorderedMinMaxArray` | Ensure that the list matches the provided example and the list is constrained to the provided min and max |
+
+#### Array contains matcher (V4 specification)
+
+The array contains matcher functions allow you to match the actual list against a list of required variants. These work
+by matching each item against the variants, and the matching succeeds if each variant matches at least one item. Order of
+items in the list is not important.
+
+The variants can have a totally different structure, and can have their own matching rules to apply. For an example of how
+these can be used to match a hypermedia format like Siren, see [Example Pact + Siren project](https://github.com/pactflow/example-siren).
+
+| function | description |
+|----------|-------------|
+| `arrayContaining` | Matches the items in an array against a number of variants. Matching is successful if each variant occurs once in the array. Variants may be objects containing matching rules. |
+
+```java
+.arrayContaining(&amp;quot;actions&amp;quot;)
+  .object()
+    .stringValue(&amp;quot;name&amp;quot;, &amp;quot;update&amp;quot;)
+    .stringValue(&amp;quot;method&amp;quot;, &amp;quot;PUT&amp;quot;)
+    .matchUrl(&amp;quot;href&amp;quot;, &amp;quot;http://localhost:9000&amp;quot;, &amp;quot;orders&amp;quot;, regex(&amp;quot;\\d+&amp;quot;, &amp;quot;1234&amp;quot;))
+  .closeObject()
+  .object()
+    .stringValue(&amp;quot;name&amp;quot;, &amp;quot;delete&amp;quot;)
+    .stringValue(&amp;quot;method&amp;quot;, &amp;quot;DELETE&amp;quot;)
+    .matchUrl(&amp;quot;href&amp;quot;, &amp;quot;http://localhost:9000&amp;quot;, &amp;quot;orders&amp;quot;, regex(&amp;quot;\\d+&amp;quot;, &amp;quot;1234&amp;quot;))
+  .closeObject()
+.closeArray()
+```
+
+#### Matching JSON values at the root
+
+For cases where you are expecting basic JSON values (strings, numbers, booleans and null) at the root level of the body
+and need to use matchers, you can use the `PactDslJsonRootValue` class. It has all the DSL matching methods for basic
+values that you can use.
+
+For example:
+
+```java
+.consumer(&amp;quot;Some Consumer&amp;quot;)
+.hasPactWith(&amp;quot;Some Provider&amp;quot;)
+    .uponReceiving(&amp;quot;a request for a basic JSON value&amp;quot;)
+        .path(&amp;quot;/hello&amp;quot;)
+    .willRespondWith()
+        .status(200)
+        .body(PactDslJsonRootValue.integerType())
+```
+
+#### Root level arrays that match all items
+
+If the root of the body is an array, you can create PactDslJsonArray classes with the following methods:
+
+| function | description |
+|----------|-------------|
+| `arrayEachLike` | Ensure that each item in the list matches the provided example |
+| `arrayMinLike` | Ensure that each item in the list matches the provided example and the list is no bigger than the provided max |
+| `arrayMaxLike` | Ensure that each item in the list matches the provided example and the list is no smaller than the provided min |
+
+For example:
+
+```java
+PactDslJsonArray.arrayEachLike()
+    .date(&amp;quot;clearedDate&amp;quot;, &amp;quot;mm/dd/yyyy&amp;quot;, date)
+    .stringType(&amp;quot;status&amp;quot;, &amp;quot;STATUS&amp;quot;)
+    .decimalType(&amp;quot;amount&amp;quot;, 100.0)
+.closeObject()
+```
+
+This will then match a body like:
+
+```json
+[ {
+  &amp;quot;clearedDate&amp;quot; : &amp;quot;07/22/2015&amp;quot;,
+  &amp;quot;status&amp;quot; : &amp;quot;C&amp;quot;,
+  &amp;quot;amount&amp;quot; : 15.0
+}, {
+  &amp;quot;clearedDate&amp;quot; : &amp;quot;07/22/2015&amp;quot;,
+  &amp;quot;status&amp;quot; : &amp;quot;C&amp;quot;,
+  &amp;quot;amount&amp;quot; : 15.0
+}, {
+
+  &amp;quot;clearedDate&amp;quot; : &amp;quot;07/22/2015&amp;quot;,
+  &amp;quot;status&amp;quot; : &amp;quot;C&amp;quot;,
+  &amp;quot;amount&amp;quot; : 15.0
+} ]
+```
+
+#### Matching arrays of arrays
+
+For the case where you have arrays of arrays (GeoJSON is an example), the following methods have been provided:
+
+| function | description |
+|----------|-------------|
+| `eachArrayLike` | Ensure that each item in the array is an array that matches the provided example |
+| `eachArrayWithMaxLike` | Ensure that each item in the array is an array that matches the provided example and the array is no bigger than the provided max |
+| `eachArrayWithMinLike` | Ensure that each item in the array is an array that matches the provided example and the array is no smaller than the provided min |
+
+For example (with GeoJSON structure):
+
+```java
+new PactDslJsonBody()
+  .stringType(&amp;quot;type&amp;quot;,&amp;quot;FeatureCollection&amp;quot;)
+  .eachLike(&amp;quot;features&amp;quot;)
+    .stringType(&amp;quot;type&amp;quot;,&amp;quot;Feature&amp;quot;)
+    .object(&amp;quot;geometry&amp;quot;)
+      .stringType(&amp;quot;type&amp;quot;,&amp;quot;Point&amp;quot;)
+      .eachArrayLike(&amp;quot;coordinates&amp;quot;) // coordinates is an array of arrays 
+        .decimalType(-7.55717)
+        .decimalType(49.766896)
+      .closeArray()
+      .closeArray()
+    .closeObject()
+    .object(&amp;quot;properties&amp;quot;)
+      .stringType(&amp;quot;prop0&amp;quot;,&amp;quot;value0&amp;quot;)
+    .closeObject()
+  .closeObject()
+  .closeArray()
+```
+
+This generated the following JSON:
+
+```json
+{
+  &amp;quot;features&amp;quot;: [
+    {
+      &amp;quot;geometry&amp;quot;: {
+        &amp;quot;coordinates&amp;quot;: [[-7.55717, 49.766896]],
+        &amp;quot;type&amp;quot;: &amp;quot;Point&amp;quot;
+      },
+      &amp;quot;type&amp;quot;: &amp;quot;Feature&amp;quot;,
+      &amp;quot;properties&amp;quot;: { &amp;quot;prop0&amp;quot;: &amp;quot;value0&amp;quot; }
+    }
+  ],
+  &amp;quot;type&amp;quot;: &amp;quot;FeatureCollection&amp;quot;
+}
+```
+
+and will be able to match all coordinates regardless of the number of coordinates.
+
+#### Matching any key in a map
+
+The DSL has been extended for cases where the keys in a map are IDs. For an example of this, see 
+[#313](https://github.com/DiUS/pact-jvm/issues/313). In this case you can use the `eachKeyLike` method, which takes an 
+example key as a parameter.
+
+For example:
+
+```java
+DslPart body = new PactDslJsonBody()
+  .object(&amp;quot;one&amp;quot;)
+    .eachKeyLike(&amp;quot;001&amp;quot;, PactDslJsonRootValue.id(12345L)) // key like an id mapped to a matcher
+  .closeObject()
+  .object(&amp;quot;two&amp;quot;)
+    .eachKeyLike(&amp;quot;001-A&amp;quot;) // key like an id where the value is matched by the following example
+      .stringType(&amp;quot;description&amp;quot;, &amp;quot;Some Description&amp;quot;)
+    .closeObject()
+  .closeObject()
+  .object(&amp;quot;three&amp;quot;)
+    .eachKeyMappedToAnArrayLike(&amp;quot;001&amp;quot;) // key like an id mapped to an array where each item is matched by the following example
+      .id(&amp;quot;someId&amp;quot;, 23456L)
+      .closeObject()
+    .closeArray()
+  .closeObject();
+
+```
+
+For an example, have a look at [WildcardKeysTest](https://github.com/DiUS/pact-jvm/blob/master/consumer/junit/src/test/java/au/com/dius/pact/consumer/junit/WildcardKeysTest.java).
+
+### Matching on paths
+
+You can use regular expressions to match incoming requests. The DSL has a `matchPath` method for this. You can provide
+a real path as a second value to use when generating requests, and if you leave it out it will generate a random one
+from the regular expression.
+
+For example:
+
+```java
+  .given(&amp;quot;test state&amp;quot;)
+    .uponReceiving(&amp;quot;a test interaction&amp;quot;)
+        .matchPath(&amp;quot;/transaction/[0-9]+&amp;quot;) // or .matchPath(&amp;quot;/transaction/[0-9]+&amp;quot;, &amp;quot;/transaction/1234567890&amp;quot;)
+        .method(&amp;quot;POST&amp;quot;)
+        .body(&amp;quot;{\&amp;quot;name\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+    .willRespondWith()
+        .status(200)
+        .body(&amp;quot;{\&amp;quot;hello\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+```
+
+### Matching on headers
+
+You can use regular expressions to match request and response headers. The DSL has a `matchHeader` method for this. You can provide
+an example header value to use when generating requests and responses, and if you leave it out it will generate a random one
+from the regular expression.
+
+For example:
+
+```java
+  .given(&amp;quot;test state&amp;quot;)
+    .uponReceiving(&amp;quot;a test interaction&amp;quot;)
+        .path(&amp;quot;/hello&amp;quot;)
+        .method(&amp;quot;POST&amp;quot;)
+        .matchHeader(&amp;quot;testreqheader&amp;quot;, &amp;quot;test.*value&amp;quot;)
+        .body(&amp;quot;{\&amp;quot;name\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+    .willRespondWith()
+        .status(200)
+        .body(&amp;quot;{\&amp;quot;hello\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+        .matchHeader(&amp;quot;Location&amp;quot;, &amp;quot;.*/hello/[0-9]+&amp;quot;, &amp;quot;/hello/1234&amp;quot;)
+```
+
+### Matching on query parameters
+
+You can use regular expressions to match request query parameters. The DSL has a `matchQuery` method for this. You can provide
+an example value to use when generating requests, and if you leave it out it will generate a random one
+from the regular expression.
+
+For example:
+
+```java
+  .given(&amp;quot;test state&amp;quot;)
+    .uponReceiving(&amp;quot;a test interaction&amp;quot;)
+        .path(&amp;quot;/hello&amp;quot;)
+        .method(&amp;quot;POST&amp;quot;)
+        .matchQuery(&amp;quot;a&amp;quot;, &amp;quot;\\d+&amp;quot;, &amp;quot;100&amp;quot;)
+        .matchQuery(&amp;quot;b&amp;quot;, &amp;quot;[A-Z]&amp;quot;, &amp;quot;X&amp;quot;)
+        .body(&amp;quot;{\&amp;quot;name\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+    .willRespondWith()
+        .status(200)
+        .body(&amp;quot;{\&amp;quot;hello\&amp;quot;: \&amp;quot;harry\&amp;quot;}&amp;quot;)
+```
+
+# Forcing pact files to be overwritten
+
+By default, when the pact file is written, it will be merged with any existing pact file. To force the file to be 
+overwritten, set the Java system property `pact.writer.overwrite` to `true`.
+
+# Having values injected from provider state callbacks
+
+You can have values from the provider state callbacks be injected into most places (paths, query parameters, headers,
+bodies, etc.). This works by using the V3 spec generators with provider state callbacks that return values. One example
+of where this would be useful is API calls that require an ID which would be auto-generated by the database on the
+provider side, so there is no way to know what the ID would be beforehand.
+
+The following DSL methods allow you to set an expression that will be parsed with the values returned from the provider states:
+
+For JSON bodies, use `valueFromProviderState`.&amp;lt;br/&amp;gt;
+For headers, use `headerFromProviderState`.&amp;lt;br/&amp;gt;
+For query parameters, use `queryParameterFromProviderState`.&amp;lt;br/&amp;gt;
+For paths, use `pathFromProviderState`.
+
+For example, assume that an API call is made to get the details of a user by ID. A provider state can be defined that
+specifies that the user must be exist, but the ID will be created when the user is created. So we can then define an
+expression for the path where the ID will be replaced with the value returned from the provider state callback.
+
+```java
+    .pathFromProviderState(&amp;quot;/api/users/${id}&amp;quot;, &amp;quot;/api/users/100&amp;quot;)
+``` 
+
+You can also just use the key instead of an expression:
+
+```java
+    .valueFromProviderState(&amp;apos;userId&amp;apos;, &amp;apos;userId&amp;apos;, 100) // will look value using userId as the key
+```
+
+# A Lambda DSL for Pact
+
+This is an extension for the pact DSL. The difference between
+the default pact DSL and this lambda DSL is, as the name suggests, the usage of lambdas. The use of lambdas makes the code much cleaner.
+
+## Why a new DSL implementation?
+
+The lambda DSL solves the following two main issues. Both are visible in the following code sample:
+ 
+```java
+new PactDslJsonArray()
+    .array()                            # open an array
+    .stringValue(&amp;quot;a1&amp;quot;)                  # choose the method that is valid for arrays
+    .stringValue(&amp;quot;a2&amp;quot;)                  # choose the method that is valid for arrays
+    .closeArray()                       # close the array
+    .array()                            # open an array
+    .numberValue(1)                     # choose the method that is valid for arrays
+    .numberValue(2)                     # choose the method that is valid for arrays
+    .closeArray()                       # close the array
+    .array()                            # open an array
+    .object()                           # now we work with an object
+    .stringValue(&amp;quot;foo&amp;quot;, &amp;quot;Foo&amp;quot;)          # choose the method that is valid for objects
+    .closeObject()                      # close the object and we&amp;apos;re back in the array
+    .closeArray()                       # close the array
+```
+
+### The existing DSL is quite error-prone
+
+Methods may only be called in certain states. For example `object()` may only be called when you&amp;apos;re currently working on an array whereas `object(name)`
+is only allowed to be called when working on an object. But both of the methods are available. You&amp;apos;ll find out at runtime if you&amp;apos;re using the correct method.
+
+Finally, the need for opening and closing objects and arrays makes usage cumbersome.
+
+The lambda DSL has no ambiguous methods and there&amp;apos;s no need to close objects and arrays as all the work on such an object is wrapped in a lamda call.
+
+### The existing DSL is hard to read
+
+When formatting your source code with an IDE the code becomes hard to read as there&amp;apos;s no indentation possible. Of course, you could do it by hand but we want auto formatting!
+Auto formatting works great for the new DSL!
+
+```java
+array.object((o) -&amp;gt; {
+  o.stringValue(&amp;quot;foo&amp;quot;, &amp;quot;Foo&amp;quot;);          # an attribute
+  o.stringValue(&amp;quot;bar&amp;quot;, &amp;quot;Bar&amp;quot;);          # an attribute
+  o.object(&amp;quot;tar&amp;quot;, (tarObject) -&amp;gt; {      # an attribute with a nested object
+    tarObject.stringValue(&amp;quot;a&amp;quot;, &amp;quot;A&amp;quot;);    # attribute of the nested object
+    tarObject.stringValue(&amp;quot;b&amp;quot;, &amp;quot;B&amp;quot;);    # attribute of the nested object
+  })
+});
+```
+
+## Usage
+
+Start with a static import of `LambdaDsl`. This class contains factory methods for the lambda dsl extension. 
+When you come accross the `body()` method of `PactDslWithProvider` builder start using the new extensions. 
+The call to `LambdaDsl` replaces the call to instance `new PactDslJsonArray()` and `new PactDslJsonBody()` of the pact library.
+
+```java
+io.pactfoundation.consumer.dsl.LambdaDsl.*
+```
+
+### Response body as json array
+
+```java
+
+import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonArray;
+
+...
+
+PactDslWithProvider builder = ...
+builder.given(&amp;quot;some state&amp;quot;)
+        .uponReceiving(&amp;quot;a request&amp;quot;)
+        .path(&amp;quot;/my-app/my-service&amp;quot;)
+        .method(&amp;quot;GET&amp;quot;)
+        .willRespondWith()
+        .status(200)
+        .body(newJsonArray((a) -&amp;gt; {
+            a.stringValue(&amp;quot;a1&amp;quot;);
+            a.stringValue(&amp;quot;a2&amp;quot;);
+        }).build());
+```
+
+### Response body as json object
+
+```java
+
+import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+
+...
+
+PactDslWithProvider builder = ...
+builder.given(&amp;quot;some state&amp;quot;)
+        .uponReceiving(&amp;quot;a request&amp;quot;)
+        .path(&amp;quot;/my-app/my-service&amp;quot;)
+        .method(&amp;quot;GET&amp;quot;)
+        .willRespondWith()
+        .status(200)
+        .body(newJsonBody((o) -&amp;gt; {
+            o.stringValue(&amp;quot;foo&amp;quot;, &amp;quot;Foo&amp;quot;);
+            o.stringValue(&amp;quot;bar&amp;quot;, &amp;quot;Bar&amp;quot;);
+        }).build());
+```
+
+### Examples
+
+#### Simple Json object
+
+When creating simple json structures the difference between the two approaches isn&amp;apos;t big.
+
+##### JSON
+
+```json
+{
+    &amp;quot;bar&amp;quot;: &amp;quot;Bar&amp;quot;,
+    &amp;quot;foo&amp;quot;: &amp;quot;Foo&amp;quot;
+}
+```
+
+##### Pact DSL
+
+```java
+new PactDslJsonBody()
+    .stringValue(&amp;quot;foo&amp;quot;, &amp;quot;Foo&amp;quot;)
+    .stringValue(&amp;quot;bar&amp;quot;, &amp;quot;Bar&amp;quot;)
+```
+
+##### Lambda DSL
+
+```java
+newJsonBody((o) -&amp;gt; {
+    o.stringValue(&amp;quot;foo&amp;quot;, &amp;quot;Foo&amp;quot;);
+    o.stringValue(&amp;quot;bar&amp;quot;, &amp;quot;Bar&amp;quot;);
+}).build();
+```
+
+#### An array of arrays
+
+When we come to more complex constructs with arrays and nested objects the beauty of lambdas become visible! 
+
+##### JSON
+
+```json
+[
+    [&amp;quot;a1&amp;quot;, &amp;quot;a2&amp;quot;],
+    [1, 2],
+    [{&amp;quot;foo&amp;quot;: &amp;quot;Foo&amp;quot;}]
+]
+```
+
+##### Pact DSL
+
+```java
+new PactDslJsonArray()
+    .array()
+    .stringValue(&amp;quot;a1&amp;quot;)
+    .stringValue(&amp;quot;a2&amp;quot;)
+    .closeArray()
+    .array()
+    .numberValue(1)
+    .numberValue(2)
+    .closeArray()
+    .array()
+    .object()
+    .stringValue(&amp;quot;foo&amp;quot;, &amp;quot;Foo&amp;quot;)
+    .closeObject()
+    .closeArray();
+```
+
+##### Lambda DSL
+
+```java
+newJsonArray((rootArray) -&amp;gt; {
+    rootArray.array((a) -&amp;gt; a.stringValue(&amp;quot;a1&amp;quot;).stringValue(&amp;quot;a2&amp;quot;));
+    rootArray.array((a) -&amp;gt; a.numberValue(1).numberValue(2));
+    rootArray.array((a) -&amp;gt; a.object((o) -&amp;gt; o.stringValue(&amp;quot;foo&amp;quot;, &amp;quot;Foo&amp;quot;)));
+}).build();
+```
+
+##### Kotlin Lambda DSL
+
+```kotlin
+newJsonArray {
+    newArray {
+      stringValue(&amp;quot;a1&amp;quot;)
+      stringValue(&amp;quot;a2&amp;quot;)
+    }
+    newArray {
+      numberValue(1)
+      numberValue(2)
+    }
+    newArray {
+      newObject { stringValue(&amp;quot;foo&amp;quot;, &amp;quot;Foo&amp;quot;) }
+    }
+ }
+```
+
+## Dealing with persistent HTTP/1.1 connections (Keep Alive)
+
+As each test will get a new mock server, connections can not be persisted between tests. HTTP clients can cache
+connections with HTTP/1.1, and this can cause subsequent tests to fail. See [#342](https://github.com/pact-foundation/pact-jvm/issues/342)
+and [#1383](https://github.com/pact-foundation/pact-jvm/issues/1383).
+
+One option (if the HTTP client supports it, Apache HTTP Client does) is to set the system property `http.keepAlive` to `false` in 
+the test JVM. The other option is to set `pact.mockserver.addCloseHeader` to `true` to force the mock server to
+send a `Connection: close` header with every response (supported with Pact-JVM 4.2.7+).
+</description>
+  <url>https://github.com/DiUS/pact-jvm</url>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>thetrav</id>
+      <name>Travis Dixon</name>
+      <email>the.trav@gmail.com</email>
+    </developer>
+    <developer>
+      <id>rholshausen</id>
+      <name>Ronald Holshausen</name>
+      <email>rholshausen@dius.com.au</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>https://github.com/DiUS/pact-jvm.git</connection>
+    <url>https://github.com/DiUS/pact-jvm</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>au.com.dius.pact.core</groupId>
+      <artifactId>model</artifactId>
+      <version>4.2.7</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>au.com.dius.pact.core</groupId>
+      <artifactId>matchers</artifactId>
+      <version>4.2.7</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib</artifactId>
+      <version>1.4.32</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-reflect</artifactId>
+      <version>1.4.32</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.java-diff-utils</groupId>
+      <artifactId>diffutils</artifactId>
+      <version>1.3.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.brics.automaton</groupId>
+      <artifactId>automaton</artifactId>
+      <version>1.11-8</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.13</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20160212</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
+      <version>4.1.52.Final</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>4.5.13</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>fluent-hc</artifactId>
+      <version>4.5.13</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.28</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.ktor</groupId>
+      <artifactId>ktor-server-netty</artifactId>
+      <version>1.4.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.ktor</groupId>
+      <artifactId>ktor-network-tls-certificates</artifactId>
+      <version>1.4.1</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

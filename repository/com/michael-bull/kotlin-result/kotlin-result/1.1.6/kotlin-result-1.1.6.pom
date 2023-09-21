@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.michael-bull.kotlin-result</groupId>
+  <artifactId>kotlin-result</artifactId>
+  <version>1.1.6</version>
+  <name>kotlin-result</name>
+  <description>A Result monad for modelling success or failure operations.</description>
+  <url>https://github.com/michaelbull/kotlin-result</url>
+  <inceptionYear>2017</inceptionYear>
+  <licenses>
+    <license>
+      <name>ISC License</name>
+      <url>https://opensource.org/licenses/isc-license.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Michael Bull</name>
+      <url>https://www.michael-bull.com</url>
+    </developer>
+  </developers>
+  <contributors>
+    <contributor>
+      <name>Kevin Herron</name>
+      <url>https://github.com/kevinherron</url>
+    </contributor>
+  </contributors>
+  <scm>
+    <connection>scm:git:https://github.com/michaelbull/kotlin-result</connection>
+    <developerConnection>scm:git:git@github.com:michaelbull/kotlin-result.git</developerConnection>
+    <url>https://github.com/michaelbull/kotlin-result</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/michaelbull/kotlin-result/issues</url>
+  </issueManagement>
+  <ciManagement>
+    <system>GitHub</system>
+    <url>https://github.com/michaelbull/kotlin-result/actions?query=workflow%3Aci</url>
+  </ciManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib</artifactId>
+      <version>1.3.61</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

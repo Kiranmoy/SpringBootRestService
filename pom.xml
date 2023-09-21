@@ -102,8 +102,8 @@
         <artifactId>maven</artifactId>
         <version>4.1.11</version>
         <configuration>
-        <pactBrokerUrl>https://rahulshettyacademy.pactflow.io/</pactBrokerUrl>
-        <pactBrokerToken>DU4SAEwbk3UXXTr05cF1Kg</pactBrokerToken>
+        <pactBrokerUrl>https://kiranmoypaul.pactflow.io/</pactBrokerUrl>
+        <pactBrokerToken>UFU6rm-beAO4-Xc2JPk7QQ</pactBrokerToken>
         </configuration>
       </plugin>
 		

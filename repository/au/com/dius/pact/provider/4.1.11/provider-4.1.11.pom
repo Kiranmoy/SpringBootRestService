@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>au.com.dius.pact</groupId>
+  <artifactId>provider</artifactId>
+  <version>4.1.11</version>
+  <name>provider</name>
+  <description>Pact provider
+=============
+
+sub project of https://github.com/DiUS/pact-jvm
+
+The pact provider is responsible for verifying that an API provider adheres to a number of pacts authored by its clients
+
+This library provides the basic tools required to automate the process, and should be usable on its own in many instances.
+
+Framework and build tool specific bindings will be provided in separate libraries that build on top of this core functionality.
+
+### Provider State
+
+Before each interaction is executed, the provider under test will have the opportunity to enter a state.
+Generally the state maps to a set of fixture data for mocking out services that the provider is a consumer of (they will have their own pacts)
+
+The pact framework will instruct the test server to enter that state by sending:
+
+    POST &amp;quot;${config.stateChangeUrl.url}/setup&amp;quot; { &amp;quot;state&amp;quot; : &amp;quot;${interaction.stateName}&amp;quot; }
+
+
+### An example of running provider verification with junit
+
+This example uses Groovy, JUnit 4 and Hamcrest matchers to run the provider verification. 
+As the provider service is a DropWizard application, it uses the DropwizardAppRule to startup the service before running any test.
+
+**Warning:** It only grabs the first interaction from the pact file with the consumer, where there could be many. (This could possibly be solved with a parameterized test)
+
+```groovy
+class ReadmeExamplePactJVMProviderJUnitTest {
+
+  @ClassRule
+  public static final TestRule startServiceRule = new DropwizardAppRule&amp;lt;DropwizardConfiguration&amp;gt;(
+    TestDropwizardApplication, ResourceHelpers.resourceFilePath(&amp;apos;dropwizard/test-config.yaml&amp;apos;))
+
+  private static ProviderInfo serviceProvider
+  private static Pact&amp;lt;RequestResponseInteraction&amp;gt; testConsumerPact
+  private static ConsumerInfo consumer
+
+  @BeforeClass
+  static void setupProvider() {
+    serviceProvider = new ProviderInfo(&amp;apos;Dropwizard App&amp;apos;)
+    serviceProvider.setProtocol(&amp;apos;http&amp;apos;)
+    serviceProvider.setHost(&amp;apos;localhost&amp;apos;)
+    serviceProvider.setPort(8080)
+    serviceProvider.setPath(&amp;apos;/&amp;apos;)
+
+    consumer = new ConsumerInfo()
+    consumer.setName(&amp;apos;test_consumer&amp;apos;)
+    consumer.setPactSource(new UrlSource(
+      ReadmeExamplePactJVMProviderJUnitTest.getResource(&amp;apos;/pacts/zoo_app-animal_service.json&amp;apos;).toString()))
+
+    testConsumerPact = DefaultPactReader.INSTANCE.loadPact(consumer.getPactSource()) as Pact&amp;lt;RequestResponseInteraction&amp;gt;
+  }
+
+  @Test
+  void runConsumerPacts() {
+    // grab the first interaction from the pact with consumer
+    Interaction interaction = testConsumerPact.interactions.get(0)
+
+    // setup the verifier
+    ProviderVerifier verifier = setupVerifier(interaction, serviceProvider, consumer)
+
+    // setup any provider state
+
+    // setup the client and interaction to fire against the provider
+    ProviderClient client = new ProviderClient(serviceProvider, new HttpClientFactory())
+    Map&amp;lt;String, Object&amp;gt; failures = new HashMap&amp;lt;&amp;gt;()
+    VerificationResult result = verifier.verifyResponseFromProvider(serviceProvider, interaction, 
+      interaction.getDescription(), failures, client)
+
+    // normally assert all good, but in this example it will fail
+    assertThat(failures, is(instanceOf(VerificationResult.Failed)))
+
+    verifier.displayFailures(result)
+  }
+
+  private ProviderVerifier setupVerifier(Interaction interaction, ProviderInfo provider, ConsumerInfo consumer) {
+    ProviderVerifier verifier = new ProviderVerifier()
+
+    verifier.initialiseReporters(provider)
+    verifier.reportVerificationForConsumer(consumer, provider, new UrlSource(&amp;apos;http://example.example&amp;apos;))
+
+    if (!interaction.getProviderStates().isEmpty()) {
+      for (ProviderState providerState: interaction.getProviderStates()) {
+        verifier.reportStateForInteraction(providerState.getName(), provider, consumer, true)
+      }
+    }
+
+    verifier.reportInteractionDescription(interaction)
+
+    return verifier
+  }
+}
+```
+    
+### An example of running provider verification with spock
+
+This example uses groovy and spock to run the provider verification. 
+Again the provider service is a DropWizard application, and is using the DropwizardAppRule to startup the service.
+
+This example runs all interactions using spocks Unroll feature
+
+```groovy
+class ReadmeExamplePactJVMProviderSpockSpec extends Specification {
+
+  @ClassRule @Shared
+  TestRule startServiceRule = new DropwizardAppRule&amp;lt;DropwizardConfiguration&amp;gt;(TestDropwizardApplication,
+    ResourceHelpers.resourceFilePath(&amp;apos;dropwizard/test-config.yaml&amp;apos;))
+
+  @Shared
+  ProviderInfo serviceProvider
+
+  ProviderVerifier verifier
+
+  def setupSpec() {
+    serviceProvider = new ProviderInfo(&amp;apos;Dropwizard App&amp;apos;)
+    serviceProvider.protocol = &amp;apos;http&amp;apos;
+    serviceProvider.host = &amp;apos;localhost&amp;apos;
+    serviceProvider.port = 8080
+    serviceProvider.path = &amp;apos;/&amp;apos;
+
+    serviceProvider.hasPactWith(&amp;apos;zoo_app&amp;apos;) { consumer -&amp;gt;
+      consumer.pactSource = new FileSource(new File(ResourceHelpers.resourceFilePath(&amp;apos;pacts/zoo_app-animal_service.json&amp;apos;)))
+    }
+  }
+
+  def setup() {
+    verifier = new ProviderVerifier()
+  }
+
+  def cleanup() {
+    // cleanup provider state
+    // ie. db.truncateAllTables()
+  }
+
+  def cleanupSpec() {
+    // cleanup provider
+  }
+
+  @Unroll
+  def &amp;quot;Provider Pact - With Consumer #consumer&amp;quot;() {
+    expect:
+    verifyConsumerPact(consumer) instanceof VerificationResult.Ok
+
+    where:
+    consumer &amp;lt;&amp;lt; serviceProvider.consumers
+  }
+
+  private VerificationResult verifyConsumerPact(ConsumerInfo consumer) {
+    verifier.initialiseReporters(serviceProvider)
+    def result = verifier.runVerificationForConsumer([:], serviceProvider, consumer)
+
+    if (result instanceof VerificationResult.Failed) {
+      verifier.displayFailures([result])
+    }
+
+    result
+  }
+}
+
+```
+</description>
+  <url>https://github.com/DiUS/pact-jvm</url>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>thetrav</id>
+      <name>Travis Dixon</name>
+      <email>the.trav@gmail.com</email>
+    </developer>
+    <developer>
+      <id>rholshausen</id>
+      <name>Ronald Holshausen</name>
+      <email>rholshausen@dius.com.au</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>https://github.com/DiUS/pact-jvm.git</connection>
+    <url>https://github.com/DiUS/pact-jvm</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.5</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.13</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>au.com.dius.pact.core</groupId>
+      <artifactId>model</artifactId>
+      <version>4.1.11</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>au.com.dius.pact.core</groupId>
+      <artifactId>pactbroker</artifactId>
+      <version>4.1.11</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>au.com.dius.pact.core</groupId>
+      <artifactId>matchers</artifactId>
+      <version>4.1.11</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>au.com.dius.pact.core</groupId>
+      <artifactId>support</artifactId>
+      <version>4.1.11</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.michael-bull.kotlin-result</groupId>
+      <artifactId>kotlin-result</artifactId>
+      <version>1.1.6</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.28</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>2.13.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.classgraph</groupId>
+      <artifactId>classgraph</artifactId>
+      <version>4.8.25</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy</artifactId>
+      <version>3.0.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.ajalt</groupId>
+      <artifactId>mordant</artifactId>
+      <version>1.2.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark</artifactId>
+      <version>0.62.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-tables</artifactId>
+      <version>0.62.2</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>
