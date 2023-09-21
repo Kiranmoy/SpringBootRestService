@@ -85,7 +85,7 @@ public class PactConsumerTest {
     return builder
       .given("course appium not exists")
       .uponReceiving("get appium course by name not exists")
-      .path("/getCourseByName/Appium")
+      .path("/getCourseByName/appium")
       .willRespondWith()
       .status(404)
       .toPact();
@@ -96,8 +96,8 @@ public class PactConsumerTest {
   @PactTestFor(pactMethod = "getAppiumCourseByNameNotExist",port="9999")
   public void getProductDetailsByNameNotExist(MockServer mockServer) throws JsonProcessingException {
     libraryController.setCoursesBaseUrl(mockServer.getUrl());
-    String expectedJson = "{\"product\":{\"book_name\":\"Appium\",\"id\":\"ttefs36\",\"isbn\":\"ttefs\",\"aisle\":36,\"author\":\"Shetty\"},\"msg\":\"Appium : Category and price details are not available at this time\"}";
-    SpecificProduct specificProduct = libraryController.getProductFullDetails("Appium");
+    String expectedJson = "{\"product\":{\"book_name\":\"Appium\",\"id\":\"ttefs36\",\"isbn\":\"ttefs\",\"aisle\":36,\"author\":\"Shetty\"},\"msg\":\"appium : Category and price details are not available at this time\"}";
+    SpecificProduct specificProduct = libraryController.getProductFullDetails("appium");
     ObjectMapper obj = new ObjectMapper();
     String actualJson = obj.writeValueAsString(specificProduct);
     Assertions.assertEquals(expectedJson, actualJson);
